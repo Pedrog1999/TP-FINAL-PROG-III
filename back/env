@@ -30,10 +30,10 @@
 # DATABASE
 #--------------------------------------------------------------------
 
-# database.default.hostname = localhost
-# database.default.database = ci4
-# database.default.username = root
-# database.default.password = root
+# database.default.hostname = db
+# database.default.database = tp_final_db
+# database.default.username = tp_user   
+# database.default.password = tp_pw
 # database.default.DBDriver = MySQLi
 # database.default.DBPrefix =
 # database.default.port = 3306
