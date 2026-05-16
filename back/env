@@ -30,13 +30,13 @@
 # DATABASE
 #--------------------------------------------------------------------
 
-# database.default.hostname = db
-# database.default.database = tp_final_db
-# database.default.username = tp_user   
-# database.default.password = tp_pw
-# database.default.DBDriver = MySQLi
-# database.default.DBPrefix =
-# database.default.port = 3306
+ database.default.hostname = db
+ database.default.database = tp_final_db
+ database.default.username = tp_user   
+ database.default.password = tp_password
+ database.default.DBDriver = MySQLi
+ database.default.DBPrefix =
+  database.default.port = 3306
 
 # If you use MySQLi as tests, first update the values of Config\Database::$tests.
 # database.tests.hostname = localhost
