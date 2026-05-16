@@ -40,6 +40,10 @@ php spark migrate ejecuta todas las migraciones hechas, por ahora, solo esa.
 
 .env , NO ENV, 45 min con el problema, no le habia renombrado el . adelante, NT
 
+primera migración exitosa, en phpmyadmin figura users y migrations.
+
+
+
 
 
 

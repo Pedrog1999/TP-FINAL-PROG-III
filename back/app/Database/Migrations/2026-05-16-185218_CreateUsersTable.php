@@ -56,7 +56,7 @@ class CreateUsersTable extends Migration
             ],
         ]);
 
-        $this->forge->addKey('id', true); // PRIMARY KEY
+        $this->forge->addKey('id', true); //clave prim
         $this->forge->addUniqueKey('username');
         $this->forge->addUniqueKey('email');
 
