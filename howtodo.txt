@@ -1,0 +1,45 @@
+entorno levantado
+docker compose up -> raiz de proyecto = 3 contenedores (BACK-FRONT-DB) ->phpmyadmin para mirarla , puerto :8081
+SERVICIOS = BACKEND , FRONTEND , PHPMYADMIN , DB.
+
+tp_user
+tp_password 
+
+db: tp_final_db
+
+
+
+github runing, feature/entorno hasta empezar migraciones.
+
+
+
+descubrimiento, terminal del contenedor de CI, distinto a terminal de vcode cd back (vcode no entiende sobre contenedores), 
+docker exec -it backend bash (consola del contenedor back)
+root@ac0c9e561f0a:/var/www/html# php spark --version
+
+CodeIgniter v4.7.2 Command Line Tool - Server Time: 2026-05-16 18:43:25 UTC+00:00
+
+(CHECK, FUNCIONA CI DENTRO DEL CONTENEDOR, OK)
+
+Las entidades son estas 8:
+users · categories · incidents · comments · tags · incident_tags · likes · favorites
+
+MAÑANA : MIGRACIONES
+
+feature/entorno LISTO, .env descomentado ;
+
+denle una calida bienvenida a feature/db
+
+migraciones: una "gran query" escrita en php, no en sql, (desde consola contenedor back) root@ac0c9e561f0a:/var/www/html# php spark make:migration CreateUsersTable
+
+CI crea automaticamente el archivo en migrations, con su fecha, (muy bueno)
+
+dentro de ese archivo, borramos todo y creamos la "gran query", todos los datos de la tabla, UP y DOWN, campos escritos en .pdf proyecto (TAL CUAL)
+
+php spark migrate ejecuta todas las migraciones hechas, por ahora, solo esa. 
+
+.env , NO ENV, 45 min con el problema, no le habia renombrado el . adelante, NT
+
+
+
+
