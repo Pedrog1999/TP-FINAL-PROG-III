@@ -1,0 +1,92 @@
+usuario entra en la página con rol = 1 por defecto, 
+
+ROLES : USER, ADUTIOR, ADMIN
+
+user : mirar noticias, administrar su propio perfil, subir imagen de avatar, y crear reportes,
+ASI MISMO el user: puede buscar reportes ajenos, buscando perfiles o reportes
+los reportes se filtran por fecha de creación
+usuario puede dar sugerencias a reportes ajenos, que no necesariamente tiene que ser una sugerencia, se puede usar en formato "Hilo"
+los reportes de cada usuario aparecen en su perfil, junto a su biografia, avatar, descripciones, etc.
+
+AUDITOR:hace todo lo mismo que el usuario, es el que crea y edita las noticias, el las sube y publica, su avatar tiene un distintivo.
+sus sugerencias aparecen sobre los reportes con otro distintivo.
+
+admin : es dios, banea usuarios , borra noticias, borra reportes, y tiene distintivo para su avatar y sus sugerencias.
+
+entidades (por ahora ) rol y user (primeras dos migraciones)
+para poder probar el login.
+
+el sistema va a girar en torno a "REPORTES", va a ser la entidad principal, ya que es la que mas interacciones puede tener.
+
+el administrador es quien define el rol del usuario, lo asciende a auditor o ADMIN. pero por defecto siemrpe es =1 (usuario)
+
+
+STACK: CodeIgniter 4 (PHP) — Arquitectura por capas
+Capas por entidad: Entity, Model, DTO, Request, Response, Service, Controller, Converter
+
+1. roles
+   - id, name
+   - Valores: 1=USER, 2=AUDITOR, 3=ADMIN
+
+2. users
+   - id, username, email, password_hash
+   - role_id FK → roles (default 1)
+   - is_banned TINYINT(1) default 0
+   - created_at, updated_at
+
+3. user_profiles
+   - id
+   - user_id FK → users (UNIQUE, relación 1:1)
+   - display_name, bio, avatar_path
+   - badge VARCHAR(30) nullable (distintivos custom a futuro)
+   - created_at, updated_at
+   - FULLTEXT index: display_name + bio
+
+4. news
+   - id
+   - author_id FK → users
+   - title, body
+   - status ENUM('draft','published','deleted')
+   - created_at, updated_at
+
+5. reports   entidad central
+   - id
+   - user_id FK → users
+   - title, body
+   - status ENUM('active','deleted')
+   - created_at (índice para filtrado por fecha)
+   - updated_at
+   - FULLTEXT index: title + body
+
+6. suggestions
+   - id
+   - report_id FK → reports
+   - user_id FK → users
+   - parent_id FK → suggestions (nullable, auto-referencia para hilo)
+   - body
+   - status ENUM('active','deleted')
+   - created_at, updated_at
+
+
+RELACIONES
+
+
+roles        1 ──< users
+users        1 ──< user_profiles  (1:1)
+users        1 ──< reports
+users        1 ──< news
+users        1 ──< suggestions
+reports      1 ──< suggestions
+suggestions  1 ──< suggestions    (self-ref, hilo anidado)
+
+
+- role_id default = 1 (USER) al registrarse
+- Solo ADMIN puede cambiar el rol de un usuario
+- AUDITOR y ADMIN pueden crear y editar news
+- Cualquier USER puede crear reports
+- Sugerencias solo sobre reports ajenos
+- El distintivo del avatar se aplica por CSS según role_id
+  (campo badge en user_profiles reservado para futuro)
+- Búsqueda: FULLTEXT sobre reports (title+body)
+  y user_profiles (display_name+bio)
+- soft delete en news, reports y suggestions (campo status)

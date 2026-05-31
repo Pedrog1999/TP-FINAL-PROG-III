@@ -34,7 +34,7 @@ migraciones: una "gran query" escrita en php, no en sql, (desde consola contened
 
 CI crea automaticamente el archivo en migrations, con su fecha, (muy bueno)
 
-dentro de ese archivo, borramos todo y creamos la "gran query", todos los datos de la tabla, UP y DOWN, campos escritos en .pdf proyecto (TAL CUAL)
+dentro de ese archivo, borramos todo y creamos la "gran query turbo diesel", todos los datos de la tabla, UP y DOWN, campos escritos en .pdf proyecto (TAL CUAL)
 
 php spark migrate ejecuta todas las migraciones hechas, por ahora, solo esa. 
 
@@ -43,6 +43,9 @@ php spark migrate ejecuta todas las migraciones hechas, por ahora, solo esa.
 primera migración exitosa, en phpmyadmin figura users y migrations.
 
 
+
+spark serve ignora el --host=0.0.0.0 y se bindea a 127.0.0.1 dentro del contenedor, así que desde afuera no era accesible.
+La solución fue usar el servidor built-in de PHP directamente con php -S 0.0.0.0:8080 -t public que sí respeta el binding.
 
 
 
