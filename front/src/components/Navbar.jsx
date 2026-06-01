@@ -21,7 +21,7 @@ export default function Navbar({ onOpenModal }) {
 
       <ul className="nav-links">
         <li><a href="#" onClick={() => scrollTo('news')}>// proyecto</a></li>
-        <li><a href="#" onClick={() => scrollTo('about')}>// desarrollador</a></li>
+        <li><a href="#" onClick={() => scrollTo('about')}>// terminal</a></li>
         <li><a href="#" onClick={() => scrollTo('tech')}>// tecnologías</a></li>
         <li>
           <a

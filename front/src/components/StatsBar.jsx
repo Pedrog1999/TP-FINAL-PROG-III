@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 const STATS = [
   { value: 4200,  suffix: '+', label: 'Vulnerabilidades documentadas' },
-  { value: 98,    suffix: '%', label: 'Sistemas con fallas conocidas'  },
+  { value: 150000,    suffix: '+', label: 'Reportes'  },
   { value: 100,     suffix: '%', label: 'Discreción y confidencialidad'      },
   { value: 250000,  suffix: '+',  label: 'Usuarios registrados'               },
 ];
