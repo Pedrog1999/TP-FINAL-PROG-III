@@ -54,7 +54,6 @@ export default function HeroSection({ onOpenModal }) {
       <MatrixRain opacity={0.22} />
 
       <div className="hero-content">
-        <p className="hero-eyebrow">// UTN — Tecnicatura Universitaria en Programación</p>
 
         <h1 className="hero-title">
           <span className="line1">Access Denied</span>
