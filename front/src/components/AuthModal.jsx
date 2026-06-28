@@ -30,27 +30,28 @@ export default function AuthModal({ initialTab = 'login', onClose }) {
     reset();
   };
 
-  const handleLogin = async () => {
-    if (!form.username.trim() || !form.password) {
-      setError('Completá todos los campos');
-      return;
-    }
-    setError('');
-    setLoading(true);
-    try {
-      const data = await loginUser({ username: form.username, password: form.password });
-      localStorage.setItem('token', data.data.token);
-      setSuccess('¡Bienvenido! Redirigiendo...');
-      setTimeout(() => {
-        onClose();
-        window.location.href = '/noticias';
-      }, 800);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleLogin = async () => {
+  if (!form.username.trim() || !form.password) {
+    setError('Completá todos los campos');
+    return;
+  }
+  setError('');
+  setLoading(true);
+  try {
+    const data = await loginUser({ username: form.username, password: form.password });
+    localStorage.setItem('token', data.data.token);
+    localStorage.setItem('username', form.username);
+    setSuccess('¡Bienvenido! Redirigiendo...');
+    setTimeout(() => {
+      onClose();
+      window.location.href = '/noticias';
+    }, 800);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleRegister = async () => {
     if (!form.username.trim() || !form.email.trim() || !form.password) {

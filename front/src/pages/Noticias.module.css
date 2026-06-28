@@ -1,0 +1,47 @@
+.page {
+  min-height: 100vh;
+  background: #0d1117;
+}
+
+.main {
+  margin-left: 220px;
+}
+
+.content {
+  padding: 20px;
+  max-width: 900px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: #e6edf3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  background: #1f2a1f;
+  color: #3fb950;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  border: 1px solid #238636;
+}
+
+.filter {
+  background: #161b22;
+  border: 1px solid #30363d;
+  color: #7d8590;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}

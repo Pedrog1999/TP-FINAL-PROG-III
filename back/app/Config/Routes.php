@@ -18,6 +18,11 @@ $routes->options('api/register', '\App\Controllers\User\UserRegisterController::
 $routes->post('api/login', '\App\Controllers\User\UserLoginController::create');
 $routes->post('api/register', '\App\Controllers\User\UserRegisterController::create');
 
+// Profile
+$routes->get('api/perfil/(:segment)', '\App\Controllers\Profile\ProfileController::show/$1', ['filter' => 'auth']);
+$routes->put('api/perfil', '\App\Controllers\Profile\ProfileController::editProfile', ['filter' => 'auth']);
+$routes->post('api/register', '\App\Controllers\User\UserRegisterController::create');
+
 
 
 // PRUEBA PARA VER SI ANDA EL MIDDLEWARE, 401 SIN TOKEN, CON TOKEN LOGEA (RUTA PROTECTED)

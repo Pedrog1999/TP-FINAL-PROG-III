@@ -75,3 +75,6 @@ export async function fetchAuth(url, options = {}) {
 
   return data;
 }
+export function setUsername(username) {
+  localStorage.setItem('username', username);
+}
