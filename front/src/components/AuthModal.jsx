@@ -38,9 +38,10 @@ const handleLogin = async () => {
   setError('');
   setLoading(true);
   try {
-    const data = await loginUser({ username: form.username, password: form.password });
-    localStorage.setItem('token', data.data.token);
-    localStorage.setItem('username', form.username);
+const data = await loginUser({ username: form.username, password: form.password });
+localStorage.setItem('token', data.data.token);
+localStorage.setItem('username', data.data.username);
+localStorage.setItem('role_id', data.data.roleId);   //empezamos a guardar el role_id en el localStorage , antes solo token
     setSuccess('¡Bienvenido! Redirigiendo...');
     setTimeout(() => {
       onClose();

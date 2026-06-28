@@ -12,10 +12,11 @@ final class User {
         private string $email,
         private string $password,
         private int $roleId,
-        private ?DateTime $createdAt,
-        private ?DateTime $updatedAt,
-        private ?string $token,
-        private ?DateTime $tokenExpirationDate
+        private bool $isBanned = false,
+        private ?DateTime $createdAt = null,
+        private ?DateTime $updatedAt = null,
+        private ?string $token = null,
+        private ?DateTime $tokenExpirationDate = null
     ) {}
 
     public function update(UserRequest $request): void
@@ -30,6 +31,7 @@ final class User {
     public function getEmail(): string { return $this->email; }
     public function getPassword(): string { return $this->password; }
     public function getRoleId(): int { return $this->roleId; }
+    public function getIsBanned(): bool { return $this->isBanned; }
     public function getCreatedAt(): ?DateTime { return $this->createdAt; }
     public function getUpdatedAt(): ?DateTime { return $this->updatedAt; }
     public function getToken(): ?string { return $this->token; }
@@ -54,6 +56,7 @@ final class User {
             $request->getEmail(),
             password_hash($request->getPassword(), PASSWORD_BCRYPT),
             1,
+            false,
             new DateTime(),
             new DateTime(),
             null,

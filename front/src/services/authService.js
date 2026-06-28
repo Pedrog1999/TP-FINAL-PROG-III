@@ -78,3 +78,14 @@ export async function fetchAuth(url, options = {}) {
 export function setUsername(username) {
   localStorage.setItem('username', username);
 }
+export function getRoleId() {
+  return parseInt(localStorage.getItem('role_id') || '1');
+}
+
+export function isAuditor() {
+  return getRoleId() >= 2;
+}
+
+export function isAdmin() {
+  return getRoleId() === 3;
+}

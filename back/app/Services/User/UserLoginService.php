@@ -19,16 +19,23 @@ final class UserLoginService {
 
     public function login(UserLoginRequest $request): UserLoginResponse
     {
-        $user = $this->userFinderByUsernameService->find($request->getUserName());
+        try {
+            $user = $this->userFinderByUsernameService->find($request->getUserName());
+        } catch (\App\Exception\User\UserNotFoundException $e) {
+            throw new UserWrongPasswordException();
+        }
 
         if (!$user->verifyPassword($request->getPassword())) {
             throw new UserWrongPasswordException();
         }
 
         $user->generateToken();
-
         $this->userModel->update($user);
 
-        return new UserLoginResponse($user->getToken());
+        return new UserLoginResponse(
+            $user->getToken(),
+            $user->getRoleId(),
+            $user->getUserName()
+        );
     }
 }

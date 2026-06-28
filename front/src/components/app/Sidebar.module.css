@@ -104,3 +104,8 @@
 .bottom {
   margin-top: auto;
 }
+.bottom {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
