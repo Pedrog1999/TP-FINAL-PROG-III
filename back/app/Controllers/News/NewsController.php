@@ -87,13 +87,22 @@ final class NewsController extends ResourceController {
         }
     }
 
-    public function delete($id = null): ResponseInterface
-    {
-        try {
-            $this->newsDeleterService->delete((int) $id);
-            return $this->respond(['status' => 200, 'message' => 'Noticia eliminada'], 200);
-        } catch (\Exception $e) {
-            return $this->respond(['status' => 404, 'message' => $e->getMessage()], 404);
+public function delete($id = null): ResponseInterface
+{
+    $user = $this->getCurrentUser();
+
+    if ($user->getRoleId() !== 3) {
+        $news = $this->newsFinderService->find((int)$id);
+        if ($news['author_id'] != $user->getId()) {
+            return $this->respond(['status' => 403, 'message' => 'No tenés permisos'], 403);
         }
     }
+
+    try {
+        $this->newsDeleterService->delete((int)$id);
+        return $this->respond(['status' => 200, 'message' => 'Noticia eliminada'], 200);
+    } catch (\Exception $e) {
+        return $this->respond(['status' => 404, 'message' => $e->getMessage()], 404);
+    }
+}
 }

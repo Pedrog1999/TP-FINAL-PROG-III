@@ -20,6 +20,10 @@ final class UserModel {
 
     public function insert(User $user): User
     {
+        $now = new DateTime();
+        $createdAt = $user->getCreatedAt() ?? $now;
+        $updatedAt = $user->getUpdatedAt() ?? $now;
+
         $query = "INSERT INTO users (username, email, password_hash, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
 
         $this->database->query($query, [
@@ -27,8 +31,8 @@ final class UserModel {
             $user->getEmail(), 
             $user->getPassword(), 
             $user->getRoleId(),
-            $user->getCreatedAt()->format("Y-m-d H:i:s"),
-            $user->getUpdatedAt()->format("Y-m-d H:i:s"),
+            $createdAt->format("Y-m-d H:i:s"),
+            $updatedAt->format("Y-m-d H:i:s"),
         ]);
 
         $id = $this->database->insertID();
@@ -39,8 +43,9 @@ final class UserModel {
             $user->getEmail(), 
             $user->getPassword(), 
             $user->getRoleId(),
-            $user->getCreatedAt(),
-            $user->getUpdatedAt(),
+            false,
+            $createdAt,
+            $updatedAt,
             null,
             null
         );
@@ -48,6 +53,9 @@ final class UserModel {
 
     public function update(User $user): User
     {
+        $tokenExp = $user->getTokenExpirationDate();
+        $now = new DateTime();
+
         $query = "UPDATE users SET username = ?, email = ?, password_hash = ?, token = ?, token_expiration_date = ?, updated_at = ? WHERE id = ?";
 
         $this->database->query($query, [
@@ -55,8 +63,8 @@ final class UserModel {
             $user->getEmail(), 
             $user->getPassword(), 
             $user->getToken(),
-            $user->getTokenExpirationDate()->format("Y-m-d H:i:s"),
-            (new DateTime())->format("Y-m-d H:i:s"),
+            $tokenExp ? $tokenExp->format("Y-m-d H:i:s") : $now->format("Y-m-d H:i:s"),
+            $now->format("Y-m-d H:i:s"),
             $user->getId()
         ]);
 
@@ -109,15 +117,16 @@ final class UserModel {
 
         return $this->converter->convert($primitive);
     }
+
     public function findAllWithProfile(): array
-{
-    $query = "SELECT u.id, u.username, u.email, u.role_id, u.is_banned, u.created_at, 
-                     COALESCE(p.badge_id, 1) as badge_id 
-              FROM users u 
-              LEFT JOIN profiles p ON u.id = p.user_id 
-              ORDER BY u.id ASC";
-    
-    $result = $this->database->query($query);
-    return $result->getResult();
-}
+    {
+        $query = "SELECT u.id, u.username, u.email, u.role_id, u.is_banned, u.created_at, 
+                         COALESCE(p.badge_id, 1) as badge_id 
+                  FROM users u 
+                  LEFT JOIN profiles p ON u.id = p.user_id 
+                  ORDER BY u.id ASC";
+
+        $result = $this->database->query($query);
+        return $result->getResult();
+    }
 }

@@ -20,7 +20,6 @@ export default function NewsDetail({ news, onBack }) {
             <div className={styles.separator} />
             <span>{news.author}</span>
             <div className={styles.separator} />
-            <span>{news.views?.toLocaleString()} lecturas</span>
           </div>
         </div>
 

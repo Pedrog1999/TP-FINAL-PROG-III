@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/app/Sidebar';
 import Topbar from '../components/app/Topbar';
 import { fetchAuth } from '../services/authService';
 import styles from './Perfil.module.css';
 
 const CURRENT_USER = localStorage.getItem('username') || 'user';
+const CLOUD_NAME = 'digxeqcff';
+const UPLOAD_PRESET = 'access_denied';
 
 const ROLE_MAP = {
   3: { label: 'Admin', css: 'roleAdmin' },
@@ -15,6 +17,7 @@ const ROLE_MAP = {
 
 export default function Perfil() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const isOwn = username === CURRENT_USER;
 
   const [profile, setProfile] = useState(null);
@@ -22,7 +25,10 @@ export default function Perfil() {
   const [error, setError] = useState('');
   const [showEdit, setShowEdit] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ bio: '', signature: '', profile_picture: '' });
+  const [form, setForm] = useState({ bio: '', signature: '' });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const loadProfile = () => {
     setLoading(true);
@@ -33,7 +39,6 @@ export default function Perfil() {
         setForm({
           bio: res.data.bio || '',
           signature: res.data.signature || '',
-          profile_picture: res.data.profile_picture || '',
         });
       })
       .catch(() => setError('Perfil no encontrado'))
@@ -46,19 +51,58 @@ export default function Perfil() {
     loadProfile();
   }, [username]);
 
-  const handleSave = async () => {
-    setSaving(true);
-    await fetchAuth('/api/perfil', {
-      method: 'PUT',
-      body: JSON.stringify(form),
-    });
-    setSaving(false);
-    setShowEdit(false);
-    loadProfile();
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
+
+  const uploadToCloudinary = async () => {
+    if (!imageFile) return null;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', imageFile);
+    formData.append('upload_preset', UPLOAD_PRESET);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json();
+    setUploading(false);
+    return data.secure_url;
+  };
+
+  const handleSave = async () => {
+  setSaving(true);
+
+  let profilePicture = profile?.profile_picture;
+  if (imageFile) {
+    profilePicture = await uploadToCloudinary();
+  }
+
+  await fetchAuth('/api/perfil', {
+    method: 'PUT',
+    body: JSON.stringify({
+      bio: form.bio,
+      signature: form.signature,
+      profile_picture: profilePicture,
+    }),
+  });
+
+  setSaving(false);
+  setShowEdit(false);
+  setImageFile(null);
+  setImagePreview(null);
+  loadProfile();
+};
 
   const role = ROLE_MAP[profile?.role_id] || ROLE_MAP[1];
   const initials = (profile?.username || 'U').slice(0, 2).toUpperCase();
+  const roleAvatarClass = profile?.role_id == 3 ? styles.avatarAdmin 
+    : profile?.role_id == 2 ? styles.avatarAuditor 
+    : '';
 
   if (loading) {
     return (
@@ -96,7 +140,7 @@ export default function Perfil() {
 
         <div className={styles.content}>
           <div className={styles.header}>
-            <div className={styles.avatar}>
+            <div className={`${styles.avatar} ${roleAvatarClass}`}>
               {profile.profile_picture ? (
                 <img src={profile.profile_picture} alt={profile.username} />
               ) : (
@@ -130,10 +174,6 @@ export default function Perfil() {
                   <span className={styles.statValue}>{profile.stats?.reports || 0}</span>
                   Reportes
                 </div>
-                <div className={styles.stat}>
-                  <span className={styles.statValue}>{profile.stats?.points || 0}</span>
-                  Puntos
-                </div>
               </div>
             </div>
 
@@ -153,9 +193,14 @@ export default function Perfil() {
                 <p className={styles.empty}>No hay reportes todavía.</p>
               ) : (
                 profile.reports.map(r => (
-                  <div key={r.id} className={styles.reportItem}>
+                  <div
+                    key={r.id}
+                    className={styles.reportItem}
+                    onClick={() => navigate(`/reportes/${r.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className={styles.reportTitle}>{r.title}</div>
-                    <div className={styles.reportMeta}>{r.date || r.created_at} · {r.status || 'Activo'}</div>
+                    <div className={styles.reportMeta}>{r.created_at} · {r.comment_count || 0} comentarios</div>
                   </div>
                 ))
               )}
@@ -169,12 +214,21 @@ export default function Perfil() {
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <h2 className={styles.modalTitle}>Editar perfil</h2>
 
-            <input
-              className={styles.input}
-              placeholder="URL de foto de perfil"
-              value={form.profile_picture}
-              onChange={e => setForm(f => ({ ...f, profile_picture: e.target.value }))}
-            />
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>
+                Foto de perfil
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ color: 'var(--text-secondary)', fontSize: 12 }}
+              />
+              {imagePreview && (
+                <img src={imagePreview} alt="Preview" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', marginTop: 8 }} />
+              )}
+            </div>
+
             <input
               className={styles.input}
               placeholder="Biografía"
@@ -189,9 +243,9 @@ export default function Perfil() {
             />
 
             <div className={styles.btnRow}>
-              <button className={styles.btnCancel} onClick={() => setShowEdit(false)}>Cancelar</button>
-              <button className={styles.btnSave} onClick={handleSave} disabled={saving}>
-                {saving ? 'Guardando...' : 'Guardar'}
+              <button className={styles.btnCancel} onClick={() => { setShowEdit(false); setImageFile(null); setImagePreview(null); }}>Cancelar</button>
+              <button className={styles.btnSave} onClick={handleSave} disabled={saving || uploading}>
+                {uploading ? 'Subiendo...' : saving ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
           </div>

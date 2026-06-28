@@ -31,14 +31,13 @@ export default function Panel() {
     setLoading(false);
   };
 
-const loadUsers = async () => {
+  const loadUsers = async () => {
     setLoading(true);
     try {
       const res = await fetch('http://localhost:8080/api/usuarios', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      console.log('USUARIOS:', data.data); // ← AGREGÁ ESTA LÍNEA
       setUsers(data.data || []);
     } catch (e) {
       setUsers([]);
@@ -89,7 +88,11 @@ const loadUsers = async () => {
     setSaving(false);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, authorName) => {
+    if (!admin && authorName !== username) {
+      alert('Solo podés eliminar tus propias noticias');
+      return;
+    }
     if (!confirm('¿Eliminar esta noticia?')) return;
     await eliminarNoticia(id);
     await loadNews();
@@ -162,6 +165,7 @@ const loadUsers = async () => {
                   <thead>
                     <tr>
                       <th>Título</th>
+                      <th>Autor</th>
                       <th>Categoría</th>
                       <th>Fecha</th>
                       <th>Acciones</th>
@@ -171,15 +175,17 @@ const loadUsers = async () => {
                     {news.map(n => (
                       <tr key={n.id}>
                         <td>{n.title}</td>
+                        <td style={{ color: 'var(--accent)', fontSize: 12 }}>{n.author_name}</td>
                         <td>{n.category}</td>
                         <td>{n.created_at}</td>
                         <td className={styles.actions}>
                           <button className={styles.btnSm} onClick={() => openEdit(n)}>Editar</button>
-                          {admin && (
-                            <button className={`${styles.btnSm} ${styles.btnSmDanger}`} onClick={() => handleDelete(n.id)}>
-                              Eliminar
-                            </button>
-                          )}
+                          <button
+                            onClick={() => handleDelete(n.id, n.author_name)}
+                            className={`${styles.btnSm} ${styles.btnSmDanger}`}
+                          >
+                            Eliminar
+                          </button>
                         </td>
                       </tr>
                     ))}

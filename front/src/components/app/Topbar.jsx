@@ -17,7 +17,7 @@ export default function Topbar({ pathname, username }) {
 
   useEffect(() => {
     fetchAuth(`/api/perfil/${username}`)
-      .then(res => setAvatarUrl(res.data?.profile_picture))
+      .then(res => setAvatarUrl(res.data?.profile_picture || null))
       .catch(() => {});
   }, [username]);
 
@@ -56,7 +56,7 @@ export default function Topbar({ pathname, username }) {
 
         <Link to={`/perfil/${username}`} className={styles.avatar}>
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+            <img key={avatarUrl} src={avatarUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
             initials
           )}
