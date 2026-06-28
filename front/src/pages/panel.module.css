@@ -162,3 +162,7 @@
   color: var(--text-muted);
   font-size: 13px;
 }
+.badgePurple {
+  background: rgba(180, 130, 255, 0.1);
+  color: #b482ff;
+}

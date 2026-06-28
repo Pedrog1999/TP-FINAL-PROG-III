@@ -109,4 +109,15 @@ final class UserModel {
 
         return $this->converter->convert($primitive);
     }
+    public function findAllWithProfile(): array
+{
+    $query = "SELECT u.id, u.username, u.email, u.role_id, u.is_banned, u.created_at, 
+                     COALESCE(p.badge_id, 1) as badge_id 
+              FROM users u 
+              LEFT JOIN profiles p ON u.id = p.user_id 
+              ORDER BY u.id ASC";
+    
+    $result = $this->database->query($query);
+    return $result->getResult();
+}
 }

@@ -31,13 +31,14 @@ export default function Panel() {
     setLoading(false);
   };
 
-  const loadUsers = async () => {
+const loadUsers = async () => {
     setLoading(true);
     try {
       const res = await fetch('http://localhost:8080/api/usuarios', {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      console.log('USUARIOS:', data.data); // ← AGREGÁ ESTA LÍNEA
       setUsers(data.data || []);
     } catch (e) {
       setUsers([]);
@@ -107,6 +108,18 @@ export default function Panel() {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ role_id: roleId }),
+    });
+    await loadUsers();
+  };
+
+  const handleBadgeChange = async (userId, badgeId) => {
+    await fetch(`http://localhost:8080/api/admin/usuarios/${userId}/badge`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ badge_id: badgeId }),
     });
     await loadUsers();
   };
@@ -189,6 +202,7 @@ export default function Panel() {
                       <th>Usuario</th>
                       <th>Email</th>
                       <th>Rol</th>
+                      <th>Badge</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -202,18 +216,29 @@ export default function Panel() {
                             {u.role_id === 3 ? 'Admin' : u.role_id === 2 ? 'Auditor' : 'User'}
                           </span>
                         </td>
+                        <td>
+                          <select
+                            value={u.badge_id || 1}
+                            onChange={(e) => handleBadgeChange(u.id, parseInt(e.target.value))}
+                            style={{
+                              background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
+                              color: 'var(--text-primary)', padding: '3px 8px', borderRadius: 4,
+                              fontSize: 11, fontFamily: 'var(--font-sans)',
+                            }}
+                          >
+                            <option value={1}>Newbie</option>
+                            <option value={2}>Hacker</option>
+                            <option value={3}>Elite</option>
+                          </select>
+                        </td>
                         <td className={styles.actions}>
                           <select
                             value={u.role_id}
                             onChange={(e) => handleRoleChange(u.id, parseInt(e.target.value))}
                             style={{
-                              background: 'var(--bg-tertiary)',
-                              border: '1px solid var(--border)',
-                              color: 'var(--text-primary)',
-                              padding: '3px 8px',
-                              borderRadius: 4,
-                              fontSize: 11,
-                              fontFamily: 'var(--font-sans)',
+                              background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
+                              color: 'var(--text-primary)', padding: '3px 8px', borderRadius: 4,
+                              fontSize: 11, fontFamily: 'var(--font-sans)',
                             }}
                           >
                             <option value={1}>User</option>

@@ -1,46 +1,92 @@
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Sidebar from '../components/app/Sidebar';
 import Topbar from '../components/app/Topbar';
+import { fetchAuth } from '../services/authService';
 import styles from './Perfil.module.css';
 
-const MOCK = {
-  pedro: {
-    username: 'pedro',
-    bio: 'Security researcher enfocado en pentesting y bug bounty.',
-    signature: 'Trust but verify',
-    badge: 'Newbie',
-    reports: [
-      { id: 1, title: 'SQL Injection en panel de login', date: '24 jun 2026', status: 'Verificado' },
-      { id: 2, title: 'XSS reflejado en campo de búsqueda', date: '15 jun 2026', status: 'Verificado' },
-      { id: 3, title: 'IDOR en API de pedidos', date: '10 jun 2026', status: 'En revisión' },
-    ],
-    skills: ['Web Security', 'OSINT', 'Python', 'Burp Suite'],
-    activity: [
-      { text: 'Publicó reporte sobre SQL Injection', dot: 'green' },
-      { text: 'Comentó en noticia sobre APT29', dot: 'blue' },
-      { text: 'Subió de rango a Newbie', dot: 'orange' },
-      { text: 'Publicó reporte XSS reflejado', dot: 'green' },
-    ],
-    stats: { reports: 47, cves: 12, points: 389, rank: 'Senior' },
-  },
-};
-
 const CURRENT_USER = localStorage.getItem('username') || 'user';
+
+const ROLE_MAP = {
+  3: { label: 'Admin', css: 'roleAdmin' },
+  2: { label: 'Auditor', css: 'roleAuditor' },
+  1: { label: 'User', css: 'roleUser' },
+};
 
 export default function Perfil() {
   const { username } = useParams();
   const isOwn = username === CURRENT_USER;
 
-  const profile = MOCK[username] || {
-    username,
-    bio: 'Perfil no encontrado.',
-    signature: '',
-    badge: 'Newbie',
-    reports: [],
-    skills: [],
-    activity: [],
-    stats: { reports: 0, cves: 0, points: 0, rank: 'Newbie' },
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [showEdit, setShowEdit] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ bio: '', signature: '', profile_picture: '' });
+
+  const loadProfile = () => {
+    setLoading(true);
+    setError('');
+    fetchAuth(`/api/perfil/${username}`)
+      .then(res => {
+        setProfile(res.data);
+        setForm({
+          bio: res.data.bio || '',
+          signature: res.data.signature || '',
+          profile_picture: res.data.profile_picture || '',
+        });
+      })
+      .catch(() => setError('Perfil no encontrado'))
+      .finally(() => setLoading(false));
   };
+
+  useEffect(() => {
+    setError('');
+    setProfile(null);
+    loadProfile();
+  }, [username]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await fetchAuth('/api/perfil', {
+      method: 'PUT',
+      body: JSON.stringify(form),
+    });
+    setSaving(false);
+    setShowEdit(false);
+    loadProfile();
+  };
+
+  const role = ROLE_MAP[profile?.role_id] || ROLE_MAP[1];
+  const initials = (profile?.username || 'U').slice(0, 2).toUpperCase();
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <Sidebar />
+        <div className={styles.main}>
+          <Topbar pathname={`/perfil/${username}`} username={CURRENT_USER} />
+          <div className={styles.content}>
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '3rem' }}>Cargando...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <div className={styles.page}>
+        <Sidebar />
+        <div className={styles.main}>
+          <Topbar pathname={`/perfil/${username}`} username={CURRENT_USER} />
+          <div className={styles.content}>
+            <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '3rem' }}>{error || 'Perfil no encontrado'}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -49,79 +95,108 @@ export default function Perfil() {
         <Topbar pathname={`/perfil/${username}`} username={CURRENT_USER} />
 
         <div className={styles.content}>
-          {/* HEADER */}
           <div className={styles.header}>
             <div className={styles.avatar}>
-              {profile.username.slice(0, 2).toUpperCase()}
-            </div>
-            <div className={styles.info}>
-              <h1 className={styles.name}>{profile.username}</h1>
-              <div className={styles.username}>@{profile.username} · Miembro desde 2026</div>
-              <p className={styles.bio}>{profile.bio}</p>
-              {profile.signature && (
-                <p className={styles.signature}>"{profile.signature}"</p>
+              {profile.profile_picture ? (
+                <img src={profile.profile_picture} alt={profile.username} />
+              ) : (
+                initials
               )}
-              <div className={styles.badge}>
-                <span className={styles.badgeDot} />
-                {profile.badge}
+            </div>
+
+            <div className={styles.info}>
+              <div className={styles.nameRow}>
+                <h1 className={styles.name}>{profile.username}</h1>
+                <span className={`${styles.roleBadge} ${styles[role.css]}`}>
+                  <span className={styles.roleDot} />
+                  {role.label}
+                </span>
               </div>
+              <div className={styles.username}>@{profile.username}</div>
+              <p className={styles.bio}>{profile.bio || 'Sin biografía'}</p>
+              {profile.signature && (
+                <p className={styles.signature}>{profile.signature}</p>
+              )}
+
+              <div className={styles.badgeRow}>
+                <span className={styles.levelBadge}>
+                  <span className={styles.levelDot} />
+                  {profile.badge || 'Newbie'}
+                </span>
+              </div>
+
               <div className={styles.stats}>
                 <div className={styles.stat}>
-                  <span className={styles.statValue}>{profile.stats.reports}</span>
+                  <span className={styles.statValue}>{profile.stats?.reports || 0}</span>
                   Reportes
                 </div>
                 <div className={styles.stat}>
-                  <span className={styles.statValue}>{profile.stats.cves}</span>
-                  CVEs
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statValue}>{profile.stats.points}</span>
+                  <span className={styles.statValue}>{profile.stats?.points || 0}</span>
                   Puntos
-                </div>
-                <div className={styles.stat}>
-                  <span className={styles.statValue} style={{ color: '#ffa94d' }}>{profile.stats.rank}</span>
-                  Rango
                 </div>
               </div>
             </div>
-            {isOwn && <button className={styles.editBtn}>Editar perfil</button>}
+
+            {isOwn && (
+              <button className={styles.editBtn} onClick={() => setShowEdit(true)}>
+                Editar perfil
+              </button>
+            )}
           </div>
 
-          {/* GRID */}
           <div className={styles.grid}>
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>{isOwn ? 'Mis reportes' : 'Reportes públicos'}</h3>
-              {profile.reports.length === 0 ? (
-                <p className={styles.empty}>No hay reportes.</p>
+            <div className={`${styles.card} ${styles.cardFull}`}>
+              <h3 className={styles.cardTitle}>
+                {isOwn ? 'Mis reportes' : 'Reportes públicos'}
+              </h3>
+              {(!profile.reports || profile.reports.length === 0) ? (
+                <p className={styles.empty}>No hay reportes todavía.</p>
               ) : (
                 profile.reports.map(r => (
                   <div key={r.id} className={styles.reportItem}>
                     <div className={styles.reportTitle}>{r.title}</div>
-                    <div className={styles.reportMeta}>{r.date} · {r.status}</div>
+                    <div className={styles.reportMeta}>{r.date || r.created_at} · {r.status || 'Activo'}</div>
                   </div>
                 ))
               )}
             </div>
-
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Actividad reciente</h3>
-              {profile.activity.map((a, i) => (
-                <div key={i} className={styles.activity}>
-                  <div className={`${styles.dot} ${a.dot === 'blue' ? styles.dotBlue : a.dot === 'orange' ? styles.dotOrange : ''}`} />
-                  {a.text}
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.card}>
-              <h3 className={styles.cardTitle}>Especialidades</h3>
-              {profile.skills.map(s => (
-                <span key={s} className={styles.skill}>{s}</span>
-              ))}
-            </div>
           </div>
         </div>
       </div>
+
+      {showEdit && (
+        <div className={styles.modalOverlay} onClick={() => setShowEdit(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <h2 className={styles.modalTitle}>Editar perfil</h2>
+
+            <input
+              className={styles.input}
+              placeholder="URL de foto de perfil"
+              value={form.profile_picture}
+              onChange={e => setForm(f => ({ ...f, profile_picture: e.target.value }))}
+            />
+            <input
+              className={styles.input}
+              placeholder="Biografía"
+              value={form.bio}
+              onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
+            />
+            <input
+              className={styles.input}
+              placeholder="Firma"
+              value={form.signature}
+              onChange={e => setForm(f => ({ ...f, signature: e.target.value }))}
+            />
+
+            <div className={styles.btnRow}>
+              <button className={styles.btnCancel} onClick={() => setShowEdit(false)}>Cancelar</button>
+              <button className={styles.btnSave} onClick={handleSave} disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

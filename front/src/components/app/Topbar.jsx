@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { fetchAuth } from '../../services/authService';
 import styles from './Topbar.module.css';
 
 const TITLES = {
@@ -7,8 +9,24 @@ const TITLES = {
 };
 
 export default function Topbar({ pathname, username }) {
+  const [query, setQuery] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const navigate = useNavigate();
   const initials = (username || 'U').slice(0, 2).toUpperCase();
   const title = TITLES[pathname] || 'HUB';
+
+  useEffect(() => {
+    fetchAuth(`/api/perfil/${username}`)
+      .then(res => setAvatarUrl(res.data?.profile_picture))
+      .catch(() => {});
+  }, [username]);
+
+  const handleSearch = (e) => {
+    if (e.key === 'Enter' && query.trim()) {
+      navigate(`/perfil/${query.trim()}`);
+      setQuery('');
+    }
+  };
 
   return (
     <div className={styles.topbar}>
@@ -19,7 +37,17 @@ export default function Topbar({ pathname, username }) {
           <span className={styles.searchIcon}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </span>
-          Buscar usuarios...
+          <input
+            type="text"
+            placeholder="Buscar usuarios..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleSearch}
+            style={{
+              background: 'transparent', border: 'none', color: 'var(--text-primary)',
+              fontSize: 12, outline: 'none', width: '100%', fontFamily: 'var(--font-sans)',
+            }}
+          />
         </div>
 
         <div className={styles.notification}>
@@ -27,7 +55,11 @@ export default function Topbar({ pathname, username }) {
         </div>
 
         <Link to={`/perfil/${username}`} className={styles.avatar}>
-          {initials}
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            initials
+          )}
         </Link>
       </div>
     </div>
