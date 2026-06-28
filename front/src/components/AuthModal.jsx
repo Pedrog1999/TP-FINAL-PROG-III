@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
+import { loginUser, registerUser } from '../services/authService';
 
 export default function AuthModal({ initialTab = 'login', onClose }) {
-  const [tab, setTab]   = useState(initialTab);
+  const [tab, setTab] = useState(initialTab);
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' });
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Sync tab when prop changes (open from different buttons)
-  useEffect(() => { setTab(initialTab); setError(''); }, [initialTab]);
+  useEffect(() => { setTab(initialTab); setError(''); setSuccess(''); }, [initialTab]);
 
-  // Close on ESC
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
@@ -19,44 +19,68 @@ export default function AuthModal({ initialTab = 'login', onClose }) {
   const handleChange = (e) =>
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
-  const handleSubmit = async () => {
+  const reset = () => {
+    setForm({ username: '', email: '', password: '', confirm: '' });
+    setError('');
+    setSuccess('');
+  };
+
+  const switchTo = (t) => {
+    setTab(t);
+    reset();
+  };
+
+  const handleLogin = async () => {
+    if (!form.username.trim() || !form.password) {
+      setError('Completá todos los campos');
+      return;
+    }
     setError('');
     setLoading(true);
+    try {
+      const data = await loginUser({ username: form.username, password: form.password });
+      localStorage.setItem('token', data.data.token);
+      setSuccess('¡Bienvenido! Redirigiendo...');
+      setTimeout(() => {
+        onClose();
+        window.location.href = '/noticias';
+      }, 800);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // ── CONECTAR AL BACK ───────────────────────────────────────
-    // Reemplazar con tu endpoint real cuando el back esté listo.
-    // Ejemplo:
-    //
-    // const endpoint = tab === 'login'
-    //   ? 'http://localhost:8000/api/auth/login'
-    //   : 'http://localhost:8000/api/auth/register';
-    //
-    // const body = tab === 'login'
-    //   ? { email: form.email, password: form.password }
-    //   : { username: form.username, email: form.email, password: form.password };
-    //
-    // try {
-    //   const res  = await fetch(endpoint, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(body),
-    //   });
-    //   const data = await res.json();
-    //   if (!res.ok) throw new Error(data.message || 'Error desconocido');
-    //   localStorage.setItem('token', data.token);
-    //   onClose();
-    //   // navigate('/foro');  ← cuando tengas react-router
-    // } catch (err) {
-    //   setError(err.message);
-    // } finally {
-    //   setLoading(false);
-    // }
-    // ──────────────────────────────────────────────────────────
+  const handleRegister = async () => {
+    if (!form.username.trim() || !form.email.trim() || !form.password) {
+      setError('Completá todos los campos');
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(form.email)) {
+      setError('Email inválido');
+      return;
+    }
+    if (form.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (form.password !== form.confirm) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
 
-    // Simulación temporal
-    await new Promise(r => setTimeout(r, 1200));
-    setError('Backend no conectado aún. Próximamente.');
-    setLoading(false);
+    setError('');
+    setLoading(true);
+    try {
+      await registerUser({ username: form.username, email: form.email, password: form.password });
+      setSuccess('¡Cuenta creada! Ahora iniciá sesión');
+      setTimeout(() => switchTo('login'), 1200);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,114 +88,83 @@ export default function AuthModal({ initialTab = 'login', onClose }) {
       <div className="modal-box">
         <button className="modal-close" onClick={onClose}>✕</button>
 
-        <h2 className="modal-title">
-          {tab === 'login' ? 'Acceder' : 'Registrarse'}
-        </h2>
-        <p className="modal-sub">
-          {tab === 'login'
-            ? '// Introduce tus credenciales para continuar'
-            : '// Crea tu cuenta en el foro'}
-        </p>
+        {tab === 'login' ? (
+          <>
+            <h2 className="modal-title">Acceder</h2>
+            <p className="modal-sub">// Introduce tus credenciales para continuar</p>
 
-        <div className="modal-tabs">
-          <button
-            className={`modal-tab ${tab === 'login' ? 'active' : ''}`}
-            onClick={() => { setTab('login'); setError(''); }}
-          >
-            Log_In
-          </button>
-          <button
-            className={`modal-tab ${tab === 'register' ? 'active' : ''}`}
-            onClick={() => { setTab('register'); setError(''); }}
-          >
-            Register
-          </button>
-        </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="login-username">Usuario</label>
+              <input id="login-username" className="form-input" name="username"
+                type="text" placeholder="h4ck3r_username"
+                value={form.username} onChange={handleChange} autoComplete="off" />
+            </div>
 
-        {tab === 'register' && (
-          <div className="form-group">
-            <label className="form-label" htmlFor="username">Usuario</label>
-            <input
-              id="username"
-              className="form-input"
-              name="username"
-              type="text"
-              placeholder="h4ck3r_username"
-              value={form.username}
-              onChange={handleChange}
-              autoComplete="off"
-            />
-          </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="login-password">Contraseña</label>
+              <input id="login-password" className="form-input" name="password"
+                type="password" placeholder="••••••••••••"
+                value={form.password} onChange={handleChange} />
+            </div>
+
+            {error && <p className="form-error">✕ {error}</p>}
+            {success && <p className="form-success">✓ {success}</p>}
+
+            <button className="form-submit" onClick={handleLogin} disabled={loading}>
+              {loading ? '> Conectando...' : '> Acceder'}
+            </button>
+
+            <p className="form-footer-text">
+              ¿No tenés cuenta?{' '}
+              <button onClick={() => switchTo('register')}>Registrate</button>
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 className="modal-title">Registrarse</h2>
+            <p className="modal-sub">// Crea tu cuenta en el foro</p>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="reg-username">Usuario</label>
+              <input id="reg-username" className="form-input" name="username"
+                type="text" placeholder="h4ck3r_username"
+                value={form.username} onChange={handleChange} autoComplete="off" />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="reg-email">Email</label>
+              <input id="reg-email" className="form-input" name="email"
+                type="email" placeholder="user@domain.com"
+                value={form.email} onChange={handleChange} autoComplete="off" />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="reg-password">Contraseña</label>
+              <input id="reg-password" className="form-input" name="password"
+                type="password" placeholder="••••••••••••"
+                value={form.password} onChange={handleChange} />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="reg-confirm">Confirmar contraseña</label>
+              <input id="reg-confirm" className="form-input" name="confirm"
+                type="password" placeholder="••••••••••••"
+                value={form.confirm} onChange={handleChange} />
+            </div>
+
+            {error && <p className="form-error">✕ {error}</p>}
+            {success && <p className="form-success">✓ {success}</p>}
+
+            <button className="form-submit" onClick={handleRegister} disabled={loading}>
+              {loading ? '> Creando...' : '> Crear cuenta'}
+            </button>
+
+            <p className="form-footer-text">
+              ¿Ya tenés cuenta?{' '}
+              <button onClick={() => switchTo('login')}>Iniciá sesión</button>
+            </p>
+          </>
         )}
-
-        <div className="form-group">
-          <label className="form-label" htmlFor="email">Email</label>
-          <input
-            id="email"
-            className="form-input"
-            name="email"
-            type="email"
-            placeholder="user@domain.com"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="off"
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label" htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            className="form-input"
-            name="password"
-            type="password"
-            placeholder="••••••••••••"
-            value={form.password}
-            onChange={handleChange}
-          />
-        </div>
-
-        {tab === 'register' && (
-          <div className="form-group">
-            <label className="form-label" htmlFor="confirm">Confirmar contraseña</label>
-            <input
-              id="confirm"
-              className="form-input"
-              name="confirm"
-              type="password"
-              placeholder="••••••••••••"
-              value={form.confirm}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-
-        {error && (
-          <p style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.72rem',
-            color: 'var(--red-alert)',
-            marginBottom: '0.75rem',
-            letterSpacing: '1px',
-          }}>
-            ✕ {error}
-          </p>
-        )}
-
-        <button
-          className="form-submit"
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? '> Conectando...' : tab === 'login' ? '> Acceder' : '> Crear cuenta'}
-        </button>
-
-        <p className="form-footer-text">
-          {tab === 'login'
-            ? <>¿No tenés cuenta? <button onClick={() => setTab('register')}>Registrate</button></>
-            : <>¿Ya tenés cuenta? <button onClick={() => setTab('login')}>Iniciá sesión</button></>
-          }
-        </p>
       </div>
     </div>
   );

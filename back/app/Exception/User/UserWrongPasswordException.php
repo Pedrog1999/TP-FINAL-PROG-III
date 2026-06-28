@@ -6,6 +6,6 @@ use RuntimeException;
 
 final class UserWrongPasswordException extends RuntimeException {
     public function __construct() {
-        parent::__construct("Contraseña incorrecta", 401);
+        parent::__construct("Datos inválidos.", 401);
     }
 }

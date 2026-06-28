@@ -1,26 +1,16 @@
-// App.jsx — router principal
-// Cuando instales react-router-dom, descomentar las rutas comentadas
-
-import Landing from './pages/Landing';
-
-// import { BrowserRouter, Routes, Route } from 'react-router-dom';
-// import Forum  from './pages/Forum';
-// import Profile from './pages/Profile';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Landing from './pages/landing';
+import Noticias from './pages/Noticias';
 
 function App() {
-  // Con react-router (descomenta cuando lo instales):
-  // return (
-  //   <BrowserRouter>
-  //     <Routes>
-  //       <Route path="/"        element={<Landing />} />
-  //       <Route path="/foro"    element={<Forum />}   />
-  //       <Route path="/perfil"  element={<Profile />} />
-  //     </Routes>
-  //   </BrowserRouter>
-  // );
-
-  // Por ahora sólo el landing:
-  return <Landing />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/noticias" element={<Noticias />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

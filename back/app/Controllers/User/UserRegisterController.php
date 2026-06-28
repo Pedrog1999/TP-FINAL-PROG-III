@@ -18,6 +18,15 @@ final class UserRegisterController extends ResourceController {
 
     public function register(): ResponseInterface
     {
+        return $this->response
+            ->setHeader('Access-Control-Allow-Origin', '*')
+            ->setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            ->setHeader('Access-Control-Allow-Headers', 'Content-Type')
+            ->setJSON(['status' => 200]);
+    }
+
+    public function create(): ResponseInterface
+    {
         try {
             $request = $this->getRequest();
             $response = $this->userCreatorService->create($request);
@@ -34,7 +43,7 @@ final class UserRegisterController extends ResourceController {
         } catch (\Exception $e) {
             return $this->respond([
                 'status' => 500,
-                'message' => 'Error interno del servidor'
+                'message' => $e->getMessage()
             ], 500);
         }
     }

@@ -6,6 +6,6 @@ use RuntimeException;
 
 final class UserNotFoundException extends RuntimeException {
     public function __construct() {
-        parent::__construct("Usuario no encontrado", 404);
+        parent::__construct("Datos inválidos.", 404);
     }
 }

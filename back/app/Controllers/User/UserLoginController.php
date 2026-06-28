@@ -19,6 +19,15 @@ final class UserLoginController extends ResourceController {
 
     public function login(): ResponseInterface
     {
+        return $this->response
+            ->setHeader('Access-Control-Allow-Origin', '*')
+            ->setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            ->setHeader('Access-Control-Allow-Headers', 'Content-Type')
+            ->setJSON(['status' => 200]);
+    }
+
+    public function create(): ResponseInterface
+    {
         try {
             $request = $this->getRequest();
             $response = $this->userLoginService->login($request);
