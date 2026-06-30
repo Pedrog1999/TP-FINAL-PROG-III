@@ -17,11 +17,12 @@ final class NewsModel {
 
     public function insert(News $news): News
     {
-        $query = "INSERT INTO news (title, body, category, author_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO news (title, body, image_url, category, author_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         $this->database->query($query, [
             $news->getTitle(),
             $news->getBody(),
+            $news->getImageUrl(),
             $news->getCategory(),
             $news->getAuthorId(),
             $news->getCreatedAt()->format("Y-m-d H:i:s"),
@@ -35,6 +36,7 @@ final class NewsModel {
             $news->getTitle(),
             $news->getBody(),
             $news->getCategory(),
+            $news->getImageUrl(),
             $news->getAuthorId(),
             $news->getCreatedAt(),
             $news->getUpdatedAt()
@@ -53,6 +55,7 @@ final class NewsModel {
                 'id' => $row->id,
                 'title' => $row->title,
                 'body' => $row->body,
+                'image_url' => $row->image_url,
                 'category' => $row->category,
                 'author_id' => $row->author_id,
                 'author_name' => $row->author_name,
@@ -76,6 +79,7 @@ final class NewsModel {
             'id' => $row->id,
             'title' => $row->title,
             'body' => $row->body,
+            'image_url' => $row->image_url,
             'category' => $row->category,
             'author_id' => $row->author_id,
             'author_name' => $row->author_name,
@@ -86,11 +90,12 @@ final class NewsModel {
 
     public function update(News $news): void
     {
-        $query = "UPDATE news SET title = ?, body = ?, category = ?, updated_at = ? WHERE id = ?";
+        $query = "UPDATE news SET title = ?, body = ?, image_url = ?, category = ?, updated_at = ? WHERE id = ?";
 
         $this->database->query($query, [
             $news->getTitle(),
             $news->getBody(),
+            $news->getImageUrl(),
             $news->getCategory(),
             (new DateTime())->format("Y-m-d H:i:s"),
             $news->getId(),

@@ -28,7 +28,6 @@ export default function Noticias() {
           <div className={styles.content}>
             <NewsDetail news={{
               ...selected,
-              views: 0,
               author: selected.author_name,
               date: selected.created_at,
             }} onBack={() => setSelected(null)} />
@@ -69,6 +68,7 @@ export default function Noticias() {
                   tag={n.category}
                   date={n.created_at}
                   featured={i === 0}
+                  imageUrl={n.image_url}
                   onClick={() => setSelected(n)}
                 />
               ))}

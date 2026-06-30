@@ -8,17 +8,17 @@ export async function getNoticia(id) {
   return fetchAuth(`/api/noticias/${id}`);
 }
 
-export async function crearNoticia({ title, body, category }) {
+export async function crearNoticia({ title, body, category, image_url }) {
   return fetchAuth('/api/noticias', {
     method: 'POST',
-    body: JSON.stringify({ title, body, category }),
+    body: JSON.stringify({ title, body, category, image_url }),
   });
 }
 
-export async function editarNoticia(id, { title, body, category }) {
+export async function editarNoticia(id, { title, body, category, image_url }) {
   return fetchAuth(`/api/noticias/${id}`, {
     method: 'PUT',
-    body: JSON.stringify({ title, body, category }),
+    body: JSON.stringify({ title, body, category, image_url }),
   });
 }
 

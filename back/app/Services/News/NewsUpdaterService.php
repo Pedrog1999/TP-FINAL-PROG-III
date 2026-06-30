@@ -28,6 +28,7 @@ final class NewsUpdaterService {
             $request->getTitle(),
             $request->getBody(),
             $request->getCategory(),
+            $request->getImageUrl(),
             $existing['author_id'],
             new \DateTime($existing['created_at']),
             new \DateTime()

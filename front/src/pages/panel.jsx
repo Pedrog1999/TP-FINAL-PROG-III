@@ -10,6 +10,9 @@ const TABS = [
   { key: 'users', label: 'Usuarios', adminOnly: true },
 ];
 
+const CLOUD_NAME = 'digxeqcff';
+const UPLOAD_PRESET = 'access_denied';
+
 export default function Panel() {
   const [tab, setTab] = useState('news');
   const [news, setNews] = useState([]);
@@ -19,6 +22,9 @@ export default function Panel() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ title: '', body: '', category: 'news' });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const username = localStorage.getItem('username') || 'user';
   const token = localStorage.getItem('token') || '';
@@ -54,6 +60,30 @@ export default function Panel() {
     setForm({ title: '', body: '', category: 'news' });
     setShowModal(false);
     setEditing(null);
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
+  const uploadToCloudinary = async () => {
+    if (!imageFile) return null;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('file', imageFile);
+    fd.append('upload_preset', UPLOAD_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+      method: 'POST',
+      body: fd,
+    });
+    const data = await res.json();
+    setUploading(false);
+    return data.secure_url;
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleCreate = async () => {
@@ -63,11 +93,13 @@ export default function Panel() {
     }
     setSaving(true);
     try {
-      await crearNoticia(form);
+      let imageUrl = null;
+      if (imageFile) imageUrl = await uploadToCloudinary();
+      await crearNoticia({ ...form, image_url: imageUrl });
       resetForm();
       await loadNews();
     } catch (e) {
-      alert('Error al crear');
+      alert(e.message || 'Error al crear');
     }
     setSaving(false);
   };
@@ -79,11 +111,13 @@ export default function Panel() {
     }
     setSaving(true);
     try {
-      await editarNoticia(editing.id, form);
+      let imageUrl = editing?.image_url || null;
+      if (imageFile) imageUrl = await uploadToCloudinary();
+      await editarNoticia(editing.id, { ...form, image_url: imageUrl });
       resetForm();
       await loadNews();
     } catch (e) {
-      alert('Error al editar');
+      alert(e.message || 'Solo podés editar tus propias noticias');
     }
     setSaving(false);
   };
@@ -101,15 +135,13 @@ export default function Panel() {
   const openEdit = (n) => {
     setEditing(n);
     setForm({ title: n.title, body: n.body, category: n.category });
+    setImagePreview(n.image_url || null);
   };
 
   const handleRoleChange = async (userId, roleId) => {
     await fetch(`http://localhost:8080/api/admin/usuarios/${userId}/rol`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ role_id: roleId }),
     });
     await loadUsers();
@@ -118,10 +150,7 @@ export default function Panel() {
   const handleBadgeChange = async (userId, badgeId) => {
     await fetch(`http://localhost:8080/api/admin/usuarios/${userId}/badge`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ badge_id: badgeId }),
     });
     await loadUsers();
@@ -226,11 +255,7 @@ export default function Panel() {
                           <select
                             value={u.badge_id || 1}
                             onChange={(e) => handleBadgeChange(u.id, parseInt(e.target.value))}
-                            style={{
-                              background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                              color: 'var(--text-primary)', padding: '3px 8px', borderRadius: 4,
-                              fontSize: 11, fontFamily: 'var(--font-sans)',
-                            }}
+                            style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontFamily: 'var(--font-sans)' }}
                           >
                             <option value={1}>Newbie</option>
                             <option value={2}>Hacker</option>
@@ -241,11 +266,7 @@ export default function Panel() {
                           <select
                             value={u.role_id}
                             onChange={(e) => handleRoleChange(u.id, parseInt(e.target.value))}
-                            style={{
-                              background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                              color: 'var(--text-primary)', padding: '3px 8px', borderRadius: 4,
-                              fontSize: 11, fontFamily: 'var(--font-sans)',
-                            }}
+                            style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '3px 8px', borderRadius: 4, fontSize: 11, fontFamily: 'var(--font-sans)' }}
                           >
                             <option value={1}>User</option>
                             <option value={2}>Auditor</option>
@@ -260,50 +281,25 @@ export default function Panel() {
             </>
           )}
 
-          {/* MODAL */}
           {(showModal || editing) && (
-            <div style={{
-              position: 'fixed', inset: 0, zIndex: 1000,
-              background: 'rgba(0,0,0,0.85)', display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-            }} onClick={resetForm}>
-              <div style={{
-                background: 'var(--bg-secondary)', border: '1px solid var(--border)',
-                borderRadius: 8, padding: 24, width: '100%', maxWidth: 500,
-              }} onClick={e => e.stopPropagation()}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={resetForm}>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, padding: 24, width: '100%', maxWidth: 500 }} onClick={e => e.stopPropagation()}>
                 <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16, color: 'var(--text-primary)' }}>
                   {editing ? 'Editar noticia' : 'Nueva noticia'}
                 </h2>
-                <input
-                  placeholder="Título"
-                  value={form.title}
-                  onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  style={{
-                    width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                    color: 'var(--text-primary)', padding: '8px 12px', borderRadius: 4, fontSize: 13,
-                    marginBottom: 10, fontFamily: 'var(--font-sans)', outline: 'none',
-                  }}
-                />
-                <textarea
-                  placeholder="Contenido"
-                  value={form.body}
-                  onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
-                  rows={5}
-                  style={{
-                    width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                    color: 'var(--text-primary)', padding: '8px 12px', borderRadius: 4, fontSize: 13,
-                    marginBottom: 10, fontFamily: 'var(--font-sans)', outline: 'none', resize: 'vertical',
-                  }}
-                />
-                <select
-                  value={form.category}
-                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  style={{
-                    width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
-                    color: 'var(--text-primary)', padding: '8px 12px', borderRadius: 4, fontSize: 13,
-                    marginBottom: 16, fontFamily: 'var(--font-sans)', outline: 'none',
-                  }}
-                >
+                <input placeholder="Título" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: 4, fontSize: 13, marginBottom: 10, fontFamily: 'var(--font-sans)', outline: 'none' }} />
+                <textarea placeholder="Contenido" value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} rows={5}
+                  style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: 4, fontSize: 13, marginBottom: 10, fontFamily: 'var(--font-sans)', outline: 'none', resize: 'vertical' }} />
+
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Imagen (opcional)</label>
+                  <input type="file" accept="image/*" onChange={handleFileChange} style={{ color: 'var(--text-secondary)', fontSize: 12 }} />
+                  {imagePreview && <img src={imagePreview} alt="Preview" style={{ width: '100%', maxHeight: 120, objectFit: 'cover', borderRadius: 4, marginTop: 8 }} />}
+                </div>
+
+                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  style={{ width: '100%', background: 'var(--bg-tertiary)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: 4, fontSize: 13, marginBottom: 16, fontFamily: 'var(--font-sans)', outline: 'none' }}>
                   <option value="news">Noticia</option>
                   <option value="critical">Crítico</option>
                   <option value="exploit">Exploit</option>
@@ -312,13 +308,8 @@ export default function Panel() {
                 </select>
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button className={styles.btnSm} onClick={resetForm}>Cancelar</button>
-                  <button
-                    className={styles.btnPrimary}
-                    onClick={editing ? handleEdit : handleCreate}
-                    disabled={saving}
-                    style={{ opacity: saving ? 0.6 : 1 }}
-                  >
-                    {saving ? 'Guardando...' : editing ? 'Guardar' : 'Crear'}
+                  <button className={styles.btnPrimary} onClick={editing ? handleEdit : handleCreate} disabled={saving || uploading} style={{ opacity: (saving || uploading) ? 0.6 : 1 }}>
+                    {uploading ? 'Subiendo...' : saving ? 'Guardando...' : editing ? 'Guardar' : 'Crear'}
                   </button>
                 </div>
               </div>

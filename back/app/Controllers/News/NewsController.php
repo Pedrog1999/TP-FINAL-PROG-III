@@ -58,7 +58,8 @@ final class NewsController extends ResourceController {
         $request = new NewsRequest(
             $input->title,
             $input->body,
-            $input->category ?? 'news'
+            $input->category ?? 'news',
+            $input->image_url ?? null
         );
 
         try {
@@ -71,12 +72,21 @@ final class NewsController extends ResourceController {
 
     public function update($id = null): ResponseInterface
     {
+        $user = $this->getCurrentUser();
         $input = $this->request->getJSON();
+
+        if ($user->getRoleId() !== 3) {
+            $existing = $this->newsFinderService->find((int)$id);
+            if ($existing['author_id'] != $user->getId()) {
+                return $this->respond(['status' => 403, 'message' => 'Solo podés editar tus noticias'], 403);
+            }
+        }
 
         $request = new NewsRequest(
             $input->title,
             $input->body,
-            $input->category ?? 'news'
+            $input->category ?? 'news',
+            $input->image_url ?? null
         );
 
         try {
@@ -87,22 +97,22 @@ final class NewsController extends ResourceController {
         }
     }
 
-public function delete($id = null): ResponseInterface
-{
-    $user = $this->getCurrentUser();
+    public function delete($id = null): ResponseInterface
+    {
+        $user = $this->getCurrentUser();
 
-    if ($user->getRoleId() !== 3) {
-        $news = $this->newsFinderService->find((int)$id);
-        if ($news['author_id'] != $user->getId()) {
-            return $this->respond(['status' => 403, 'message' => 'No tenés permisos'], 403);
+        if ($user->getRoleId() !== 3) {
+            $news = $this->newsFinderService->find((int)$id);
+            if ($news['author_id'] != $user->getId()) {
+                return $this->respond(['status' => 403, 'message' => 'No tenés permisos'], 403);
+            }
+        }
+
+        try {
+            $this->newsDeleterService->delete((int)$id);
+            return $this->respond(['status' => 200, 'message' => 'Noticia eliminada'], 200);
+        } catch (\Exception $e) {
+            return $this->respond(['status' => 404, 'message' => $e->getMessage()], 404);
         }
     }
-
-    try {
-        $this->newsDeleterService->delete((int)$id);
-        return $this->respond(['status' => 200, 'message' => 'Noticia eliminada'], 200);
-    } catch (\Exception $e) {
-        return $this->respond(['status' => 404, 'message' => $e->getMessage()], 404);
-    }
-}
 }
