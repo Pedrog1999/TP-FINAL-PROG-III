@@ -25,6 +25,7 @@ export default function Panel() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
 
   const username = localStorage.getItem('username') || 'user';
   const token = localStorage.getItem('token') || '';
@@ -44,7 +45,14 @@ export default function Panel() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setUsers(data.data || []);
+      const parsed = (data.data || []).map(u => ({
+        ...u,
+        role_id: parseInt(u.role_id),
+        badge_id: parseInt(u.badge_id || 1),
+        is_banned: parseInt(u.is_banned || 0),
+        is_readonly: parseInt(u.is_readonly || 0),
+      }));
+      setUsers(parsed);
     } catch (e) {
       setUsers([]);
     }
@@ -156,6 +164,35 @@ export default function Panel() {
     await loadUsers();
   };
 
+  const handleToggleBan = async (userId) => {
+    await fetch(`http://localhost:8080/api/admin/usuarios/${userId}/ban`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    });
+    await loadUsers();
+  };
+
+const handleToggleReadonly = async (userId) => {
+  await fetch(`http://localhost:8080/api/admin/usuarios/${userId}/readonly`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+  });
+  const res = await fetch('http://localhost:8080/api/usuarios', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await res.json();
+  const parsed = (data.data || []).map(u => ({
+    ...u,
+    is_readonly: parseInt(u.is_readonly || 0),
+    is_banned: parseInt(u.is_banned || 0),
+  }));
+  setUsers(parsed);
+};
+
+  const filteredUsers = users.filter(u =>
+    u.username.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
   return (
     <div className={styles.page}>
       <Sidebar />
@@ -226,9 +263,23 @@ export default function Panel() {
 
           {tab === 'users' && admin && (
             <>
+              <div style={{ marginBottom: 12, marginTop: 16 }}>
+                <input
+                  type="text"
+                  placeholder="Buscar usuario..."
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  style={{
+                    background: 'var(--bg-tertiary)', border: '1px solid var(--border)',
+                    color: 'var(--text-primary)', padding: '6px 12px', borderRadius: 4,
+                    fontSize: 12, fontFamily: 'var(--font-sans)', outline: 'none', width: 200,
+                  }}
+                />
+              </div>
+
               {loading ? (
                 <p className={styles.empty}>Cargando...</p>
-              ) : users.length === 0 ? (
+              ) : filteredUsers.length === 0 ? (
                 <p className={styles.empty}>No hay usuarios.</p>
               ) : (
                 <table className={styles.table}>
@@ -238,11 +289,12 @@ export default function Panel() {
                       <th>Email</th>
                       <th>Rol</th>
                       <th>Badge</th>
+                      <th>Estado</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(u => (
+                    {filteredUsers.map(u => (
                       <tr key={u.id}>
                         <td>{u.username}</td>
                         <td>{u.email}</td>
@@ -261,6 +313,17 @@ export default function Panel() {
                             <option value={2}>Hacker</option>
                             <option value={3}>Elite</option>
                           </select>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                            <button
+                              onClick={() => handleToggleBan(u.id)}
+                              className={`${styles.btnSm} ${u.is_banned ? '' : styles.btnSmDanger}`}
+                            >
+                              {u.is_banned ? 'Desbanear' : 'Banear'}
+                            </button>
+
+                          </div>
                         </td>
                         <td className={styles.actions}>
                           <select

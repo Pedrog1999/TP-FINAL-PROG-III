@@ -34,6 +34,7 @@ $routes->get('api/usuarios', '\App\Controllers\Admin\AdminController::users', ['
 $routes->put('api/admin/usuarios/(:num)/rol', '\App\Controllers\Admin\AdminController::updateRole/$1', ['filter' => 'role:3']);
 $routes->put('api/admin/usuarios/(:num)/ban', '\App\Controllers\Admin\AdminController::toggleBan/$1', ['filter' => 'role:3']);
 $routes->put('api/admin/usuarios/(:num)/badge', '\App\Controllers\Admin\AdminController::updateBadge/$1', ['filter' => 'role:3']);
+$routes->put('api/admin/usuarios/(:num)/readonly', '\App\Controllers\Admin\AdminController::toggleReadonly/$1', ['filter' => 'role:3']);
 
 // Reportes
 $routes->get('api/reportes', '\App\Controllers\Report\ReportController::index', ['filter' => 'auth']);

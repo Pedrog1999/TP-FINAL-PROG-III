@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Services\User\UserBadgeUpdaterService;
 use App\Services\User\UserBanToggleService;
+use App\Services\User\UserReadonlyToggleService;
 use App\Services\User\UserRoleUpdaterService;
 use App\Services\User\UsersListerService;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -15,12 +16,14 @@ final class AdminController extends ResourceController {
     private UserRoleUpdaterService $userRoleUpdaterService;
     private UserBanToggleService $userBanToggleService;
     private UserBadgeUpdaterService $userBadgeUpdaterService;
+    private UserReadonlyToggleService $userReadonlyToggleService;
 
     public function __construct() {
         $this->usersListerService = new UsersListerService();
         $this->userRoleUpdaterService = new UserRoleUpdaterService();
         $this->userBanToggleService = new UserBanToggleService();
         $this->userBadgeUpdaterService = new UserBadgeUpdaterService();
+        $this->userReadonlyToggleService = new UserReadonlyToggleService();
     }
 
     public function users(): ResponseInterface
@@ -57,6 +60,16 @@ final class AdminController extends ResourceController {
     {
         try {
             $message = $this->userBanToggleService->toggle((int) $id);
+            return $this->respond(['status' => 200, 'message' => $message], 200);
+        } catch (\Exception $e) {
+            return $this->respond(['status' => 404, 'message' => $e->getMessage()], 404);
+        }
+    }
+
+    public function toggleReadonly($id): ResponseInterface
+    {
+        try {
+            $message = $this->userReadonlyToggleService->toggle((int) $id);
             return $this->respond(['status' => 200, 'message' => $message], 200);
         } catch (\Exception $e) {
             return $this->respond(['status' => 404, 'message' => $e->getMessage()], 404);

@@ -8,6 +8,7 @@ use App\Exception\User\UserWrongPasswordException;
 use App\Services\User\UserLoginService;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
+use RuntimeException;
 
 final class UserLoginController extends ResourceController {
 
@@ -44,8 +45,13 @@ final class UserLoginController extends ResourceController {
         } catch (UserWrongPasswordException $e) {
             return $this->respond([
                 'status' => 401,
-                'message' => $e->getMessage()
+                'message' => 'Usuario o contraseña incorrectos'
             ], 401);
+        } catch (RuntimeException $e) {
+            return $this->respond([
+                'status' => 403,
+                'message' => $e->getMessage()
+            ], 403);
         } catch (\Exception $e) {
             return $this->respond([
                 'status' => 500,

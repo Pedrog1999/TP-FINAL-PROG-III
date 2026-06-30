@@ -21,6 +21,10 @@ final class UserBanToggleService {
             throw new RuntimeException("Usuario no encontrado", 404);
         }
 
+        if ($user->getRoleId() === 3) {
+            throw new RuntimeException("No se puede banear a un administrador", 403);
+        }
+
         $newStatus = $user->getIsBanned() ? 0 : 1;
         $db = \Config\Database::connect();
         $db->query("UPDATE users SET is_banned = ? WHERE id = ?", [$newStatus, $userId]);

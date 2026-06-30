@@ -6,6 +6,7 @@ use App\Dto\Request\User\UserLoginRequest;
 use App\Dto\Response\User\UserLoginResponse;
 use App\Exception\User\UserWrongPasswordException;
 use App\Models\UserModel;
+use RuntimeException;
 
 final class UserLoginService {
     
@@ -23,6 +24,10 @@ final class UserLoginService {
             $user = $this->userFinderByUsernameService->find($request->getUserName());
         } catch (\App\Exception\User\UserNotFoundException $e) {
             throw new UserWrongPasswordException();
+        }
+
+        if ($user->getIsBanned()) {
+            throw new RuntimeException("Tu cuenta fue suspendida");
         }
 
         if (!$user->verifyPassword($request->getPassword())) {
