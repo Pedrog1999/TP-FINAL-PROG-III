@@ -46,7 +46,7 @@ localStorage.setItem('role_id', data.data.roleId);   //empezamos a guardar el ro
     setTimeout(() => {
       onClose();
       window.location.href = '/noticias';
-    }, 800);
+    }, 1500);
   } catch (err) {
     setError(err.message);
   } finally {

@@ -34,11 +34,26 @@ final class NewsController extends ResourceController {
         return $this->userModel->findByToken($token);
     }
 
-    public function index(): ResponseInterface
-    {
-        $news = $this->newsFinderService->findAll();
-        return $this->respond(['status' => 200, 'data' => $news], 200);
-    }
+public function index(): ResponseInterface
+{
+    $page = (int) ($this->request->getGet('page') ?? 1);
+    $limit = (int) ($this->request->getGet('limit') ?? 10);
+    if ($page < 1) $page = 1;
+    if ($limit < 1 || $limit > 50) $limit = 10;
+
+    $result = $this->newsFinderService->findAll($page, $limit);
+
+    return $this->respond([
+        'status' => 200,
+        'data' => $result['items'],
+        'meta' => [
+            'page' => $result['page'],
+            'limit' => $result['limit'],
+            'total' => $result['total'],
+            'totalPages' => (int) ceil($result['total'] / $result['limit']),  //ceil redondea p arriba, si hay 47 paginas, 5 paginas, 47/10 = 4.7, ceil(4.7) = 5 pags 
+        ],
+    ], 200);
+}
 
     public function show($id = null): ResponseInterface
     {

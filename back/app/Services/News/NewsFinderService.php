@@ -13,10 +13,15 @@ final class NewsFinderService {
         $this->newsModel = new NewsModel();
     }
 
-    public function findAll(): array
-    {
-        return $this->newsModel->findAll();
-    }
+public function findAll(int $page = 1, int $limit = 10): array
+{
+    return [
+        'items' => $this->newsModel->findAll($page, $limit),
+        'total' => $this->newsModel->count(),
+        'page' => $page,
+        'limit' => $limit,
+    ];
+}
 
     public function find(int $id): array
     {

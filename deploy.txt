@@ -1,0 +1,4 @@
+Host: mysql-1ff48257-pedrogianibelli1999-305a.d.aivencloud.com
+Port: 21535
+ User: avnadmin
+AVNS_r2oQ5D8SKdsFcvYryjh

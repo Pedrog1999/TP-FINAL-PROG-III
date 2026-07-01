@@ -9,7 +9,7 @@ import AuthModal     from '../components/AuthModal';
 import '../styles/landing.css';
 
 export default function Landing() {
-  const [modal, setModal] = useState(null); // null | 'login' | 'register'
+  const [modal, setModal] = useState(null); 
 
   const openModal  = (tab) => setModal(tab);
   const closeModal = ()    => setModal(null);

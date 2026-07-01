@@ -42,10 +42,15 @@ function Line({ color, italic, children }) {
 }
 
 function buildOutput(cmd) {
-  const { output_type, payload } = cmd;
+  const { output_type, payload, description } = cmd;
 
+  const descriptionLine = description ? (
+    <Line color={S.dimGreen} italic>{description}</Line>
+  ) : null;
+
+  let content;
   if (output_type === 'table') {
-    return () => (
+    content = (
       <Row>
         {payload.rows.map((e, i) => (
           <span key={i} style={{ display: 'block', lineHeight: 1.8 }}>
@@ -59,10 +64,8 @@ function buildOutput(cmd) {
         ))}
       </Row>
     );
-  }
-
-  if (output_type === 'list') {
-    return () => (
+  } else if (output_type === 'list') {
+    content = (
       <Row>
         {payload.items.map((item, i) => (
           <span key={i} style={{ display: 'block', fontFamily: S.mono, fontSize: '0.82rem', lineHeight: 1.8 }}>
@@ -72,10 +75,8 @@ function buildOutput(cmd) {
         ))}
       </Row>
     );
-  }
-
-  if (output_type === 'keyval') {
-    return () => (
+  } else if (output_type === 'keyval') {
+    content = (
       <Row>
         {payload.items.map((item, i) => (
           <span key={i} style={{ display: 'block', lineHeight: 1.7, marginBottom: '0.3rem' }}>
@@ -93,22 +94,29 @@ function buildOutput(cmd) {
         ))}
       </Row>
     );
+  } else {
+    // ascii + plain
+    content = (
+      <Row>
+        {payload.lines.map((line, i) => (
+          <Line key={i} color={STYLE_MAP[line.style] ?? S.dim}>
+            {line.text}
+          </Line>
+        ))}
+      </Row>
+    );
   }
 
-  // ascii + plain
-  return () => (
-    <Row>
-      {payload.lines.map((line, i) => (
-        <Line key={i} color={STYLE_MAP[line.style] ?? S.dim}>
-          {line.text}
-        </Line>
-      ))}
-    </Row>
+  return (
+    <>
+      {descriptionLine}
+      {content}
+    </>
   );
 }
 
 function buildHelpOutput(data) {
-  return () => (
+  return (
     <Row>
       <Line color={S.dim}>Comandos disponibles:</Line>
       {data.map((cmd, i) => (
@@ -144,7 +152,7 @@ export default function AboutSection() {
   const [bootLines, setBootLines] = useState([]);
   const [history, setHistory]     = useState([]);
   const [input, setInput]         = useState('');
-  const [cmdMap, setCmdMap]       = useState(null);   // null = cargando, {} = error/vacío
+  const [cmdMap, setCmdMap]       = useState(null);
   const [fetchError, setFetchError] = useState(false);
 
   const bodyRef  = useRef(null);
@@ -159,9 +167,9 @@ export default function AboutSection() {
       .then(({ data }) => {
         const map = {};
         data.forEach(cmd => {
-          map[cmd.command] = buildOutput(cmd);
+map[cmd.command.toLowerCase()] = () => buildOutput(cmd);
         });
-        map['/help'] = buildHelpOutput(data);
+        map['/help'] = () => buildHelpOutput(data);
         setCmdMap(map);
       })
       .catch(() => {
@@ -201,7 +209,6 @@ export default function AboutSection() {
     const cmd = raw.toLowerCase();
     if (!cmd) return;
 
-    // Estado idle: solo acepta /accessdeniedinit
     if (phase === 'idle') {
       if (cmd === '/accessdeniedinit') {
         setHistory([]);
@@ -228,7 +235,6 @@ export default function AboutSection() {
 
     if (phase !== 'ready') return;
 
-    // clear
     if (cmd === 'clear') {
       setHistory([]);
       setBootLines([...BOOT_SEQUENCE]);
@@ -238,7 +244,6 @@ export default function AboutSection() {
 
     const newEntry = [{ type: 'cmd', content: raw }];
 
-    // Todavía cargando
     if (cmdMap === null) {
       newEntry.push({
         type: 'err',
@@ -295,7 +300,6 @@ export default function AboutSection() {
             overflow:  'hidden',
           }}
         >
-          {/* Barra superior */}
           <div className="terminal-bar">
             <span className="t-dot red" />
             <span className="t-dot yellow" />
@@ -303,7 +307,6 @@ export default function AboutSection() {
             <span className="terminal-title">PEDRO_CABJ@hackforum:~$</span>
           </div>
 
-          {/* Body */}
           <div
             ref={bodyRef}
             className="terminal-body"
@@ -317,7 +320,6 @@ export default function AboutSection() {
             onClick={() => inputRef.current?.focus()}
           >
 
-            {/* Idle: mensaje inicial */}
             {phase === 'idle' && history.length === 0 && (
               <span className="t-output" style={{ color: S.dim, fontStyle: 'italic' }}>
                 Sistema en espera. Escribí{' '}
@@ -326,7 +328,6 @@ export default function AboutSection() {
               </span>
             )}
 
-            {/* Historial idle (errores pre-boot) */}
             {phase === 'idle' && history.map((e, i) => (
               <div key={i} style={{ marginBottom: '0.15rem' }}>
                 {e.type === 'cmd'
@@ -336,7 +337,6 @@ export default function AboutSection() {
               </div>
             ))}
 
-            {/* Boot sequence */}
             {(phase === 'booting' || phase === 'ready') &&
               bootLines.filter(Boolean).map((line, i) => (
                 <span
@@ -353,7 +353,6 @@ export default function AboutSection() {
               ))
             }
 
-            {/* Historial post-boot */}
             {phase === 'ready' && history.map((e, i) => (
               <div key={i} style={{ marginBottom: '0.15rem' }}>
                 {e.type === 'cmd' && (
@@ -371,7 +370,6 @@ export default function AboutSection() {
               </div>
             ))}
 
-            {/* Input activo */}
             {phase !== 'booting' && (
               <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.2rem' }}>
                 <span className="t-prompt">db@hackforum:~$ </span>

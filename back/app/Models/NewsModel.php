@@ -43,10 +43,11 @@ final class NewsModel {
         );
     }
 
-    public function findAll(): array
+    public function findAll(int $page = 1, int $limit = 10): array
     {
-        $query = "SELECT n.*, u.username as author_name FROM news n JOIN users u ON n.author_id = u.id ORDER BY n.created_at DESC";
-        $result = $this->database->query($query);
+        $offset = ($page - 1) * $limit;
+        $query = "SELECT n.*, u.username as author_name FROM news n JOIN users u ON n.author_id = u.id ORDER BY n.created_at DESC LIMIT ? OFFSET ?";
+        $result = $this->database->query($query, [$limit, $offset]);
         $rows = $result->getResult();
 
         $news = [];
@@ -66,6 +67,13 @@ final class NewsModel {
 
         return $news;
     }
+
+    // counts p total de news p paginar
+    public function count(): int
+{
+    $result = $this->database->query("SELECT COUNT(*) as total FROM news");
+    return (int) $result->getRow()->total;
+}
 
     public function find(int $id): ?array
     {
