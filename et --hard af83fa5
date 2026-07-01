@@ -1,0 +1,37 @@
+[33mb7914b6[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{0}: rebase (start): checkout d9d542a^
+[33maf83fa5[m[33m ([m[1;32mfeature/reports[m[33m)[m HEAD@{1}: commit: terminal commands
+[33md9d542a[m HEAD@{2}: commit: fix command terminak
+[33mb7914b6[m[33m ([m[1;36mHEAD[m[33m)[m HEAD@{3}: commit: feature/reports
+[33md74bdad[m[33m ([m[1;31morigin/feature/reports[m[33m)[m HEAD@{4}: commit: anda, no tocar
+[33m2af2bfa[m HEAD@{5}: commit: profile images + news images
+[33md2aae04[m HEAD@{6}: commit: entity reports
+[33mda1b6c5[m[33m ([m[1;31morigin/feature/news[m[33m, [m[1;32mfeature/news[m[33m)[m HEAD@{7}: checkout: moving from feature/news to feature/reports
+[33mda1b6c5[m[33m ([m[1;31morigin/feature/news[m[33m, [m[1;32mfeature/news[m[33m)[m HEAD@{8}: commit: DESCENSO A LA LOCURA
+[33m9c3c73a[m HEAD@{9}: commit: news entity
+[33m75271af[m[33m ([m[1;31morigin/feature/profile[m[33m, [m[1;32mfeature/profile[m[33m)[m HEAD@{10}: checkout: moving from feature/profile to feature/news
+[33m75271af[m[33m ([m[1;31morigin/feature/profile[m[33m, [m[1;32mfeature/profile[m[33m)[m HEAD@{11}: commit: entity profile
+[33m0070bd7[m[33m ([m[1;31morigin/feature/user[m[33m, [m[1;32mfeature/user[m[33m)[m HEAD@{12}: checkout: moving from feature/user to feature/profile
+[33m0070bd7[m[33m ([m[1;31morigin/feature/user[m[33m, [m[1;32mfeature/user[m[33m)[m HEAD@{13}: commit: middleware + token
+[33md907849[m HEAD@{14}: commit: register and login
+[33mad3cc24[m[33m ([m[1;31morigin/cleancode[m[33m, [m[1;32mcleancode[m[33m)[m HEAD@{15}: checkout: moving from cleancode to feature/user
+[33mad3cc24[m[33m ([m[1;31morigin/cleancode[m[33m, [m[1;32mcleancode[m[33m)[m HEAD@{16}: commit: last fix
+[33mf3fb44e[m[33m ([m[1;32mfeature/consola[m[33m)[m HEAD@{17}: checkout: moving from feature/consola to cleancode
+[33mf3fb44e[m[33m ([m[1;32mfeature/consola[m[33m)[m HEAD@{18}: commit: clean code
+[33m89f50c0[m[33m ([m[1;31morigin/feature/consola[m[33m, [m[1;32mfeature/migrations[m[33m)[m HEAD@{19}: checkout: moving from feature/migrations to feature/consola
+[33m89f50c0[m[33m ([m[1;31morigin/feature/consola[m[33m, [m[1;32mfeature/migrations[m[33m)[m HEAD@{20}: commit: add beautiful console functional
+[33mb4e30b8[m[33m ([m[1;31morigin/feature/migrations[m[33m)[m HEAD@{21}: commit: all migrations
+[33mb0209a6[m HEAD@{22}: commit: fix estructura
+[33m74b8a1a[m HEAD@{23}: commit: users and rol tables
+[33md36a54e[m[33m ([m[1;31morigin/landing[m[33m, [m[1;32mlanding[m[33m)[m HEAD@{24}: checkout: moving from landing to feature/migrations
+[33md36a54e[m[33m ([m[1;31morigin/landing[m[33m, [m[1;32mlanding[m[33m)[m HEAD@{25}: commit: fix landing
+[33m20c7b77[m[33m ([m[1;31morigin/user-entity[m[33m, [m[1;32muser-entity[m[33m)[m HEAD@{26}: checkout: moving from user-entity to landing
+[33m20c7b77[m[33m ([m[1;31morigin/user-entity[m[33m, [m[1;32muser-entity[m[33m)[m HEAD@{27}: commit: fix PUERTOS
+[33me2256c8[m[33m ([m[1;31morigin/feature/db[m[33m, [m[1;32mfeature/db[m[33m)[m HEAD@{28}: checkout: moving from feature/db to user-entity
+[33me2256c8[m[33m ([m[1;31morigin/feature/db[m[33m, [m[1;32mfeature/db[m[33m)[m HEAD@{29}: commit: first migration
+[33mbdcead1[m HEAD@{30}: commit: .env funcional
+[33m244383d[m[33m ([m[1;31morigin/feature/entorno[m[33m, [m[1;32mfeature/entorno[m[33m)[m HEAD@{31}: checkout: moving from feature/entorno to feature/db
+[33m244383d[m[33m ([m[1;31morigin/feature/entorno[m[33m, [m[1;32mfeature/entorno[m[33m)[m HEAD@{32}: commit: #env ready to start
+[33m08473f4[m HEAD@{33}: commit: docker up fix puertos
+[33m610ecce[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{34}: checkout: moving from master to feature/entorno
+[33m610ecce[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{35}: commit: fix back
+[33m00cb020[m HEAD@{36}: commit (initial): first commit
